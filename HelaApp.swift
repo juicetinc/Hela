@@ -11,11 +11,16 @@ struct HelaApp: App {
     
     var body: some Scene {
         WindowGroup {
-            MainTabView()
+            // Use the new enhanced UI with grid layout and modern components
+            MainTabViewEnhanced()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .onAppear {
-                    print("✅ MainTabView appeared")
+                    print("✅ MainTabViewEnhanced appeared")
                 }
+            
+            // To use the original list-based UI, uncomment this:
+            // MainTabView()
+            //     .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
 }

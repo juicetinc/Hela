@@ -162,15 +162,15 @@ struct LibraryView: View {
                                 }
                             } label: {
                                 Text(category.capitalized)
-                                    .font(.subheadline)
+                                    .font(HelaTheme.Typography.subheadline)
                                     .fontWeight(.medium)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, HelaTheme.spacingL)
+                                    .padding(.vertical, HelaTheme.spacingS)
                                     .background(
                                         Capsule()
-                                            .fill(selectedCategory == category ? Color.blue : Color(.systemGray6))
+                                            .fill(selectedCategory == category ? HelaTheme.Colors.primaryBlue : HelaTheme.Colors.backgroundSecondary)
                                     )
-                                    .foregroundStyle(selectedCategory == category ? .white : .primary)
+                                    .foregroundStyle(selectedCategory == category ? .white : HelaTheme.Colors.textPrimary)
                             }
                         }
                     }
@@ -189,20 +189,20 @@ struct LibraryView: View {
                                         selectedCollection = collection
                                     }
                                 } label: {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "folder")
+                                    HStack(spacing: HelaTheme.spacingXS) {
+                                        Image(systemName: HelaTheme.Icons.folder)
                                             .font(.system(size: 12))
                                         Text(collection.capitalized)
                                     }
-                                    .font(.subheadline)
+                                    .font(HelaTheme.Typography.subheadline)
                                     .fontWeight(.medium)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, HelaTheme.spacingL)
+                                    .padding(.vertical, HelaTheme.spacingS)
                                     .background(
                                         Capsule()
-                                            .fill(selectedCollection == collection ? Color.purple : Color(.systemGray6))
+                                            .fill(selectedCollection == collection ? HelaTheme.Colors.collectionAccent : HelaTheme.Colors.backgroundSecondary)
                                     )
-                                    .foregroundStyle(selectedCollection == collection ? .white : .primary)
+                                    .foregroundStyle(selectedCollection == collection ? .white : HelaTheme.Colors.textPrimary)
                                 }
                             }
                         }
@@ -316,10 +316,10 @@ struct ItemRow: View {
                 }
             }
             .frame(width: 80, height: 80)
-            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .clipShape(RoundedRectangle(cornerRadius: HelaTheme.cornerRadiusChip))
             
             // Content
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: HelaTheme.spacingS) {
                 // Title
                 if let title = item.title, !title.isEmpty {
                     Text(title)

@@ -17,15 +17,15 @@ struct ItemDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: HelaTheme.spacingXL) {
                 // Image
                 if let image = loadedImage {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFit()
                         .frame(maxHeight: 400)
-                        .cornerRadius(12)
-                        .shadow(radius: 5)
+                        .cornerRadius(HelaTheme.cornerRadiusCard)
+                        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
                 } else if let imageData = item.imageData,
                           let uiImage = UIImage(data: imageData) {
                     Image(uiImage: uiImage)

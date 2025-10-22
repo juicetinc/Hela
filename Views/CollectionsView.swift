@@ -20,7 +20,14 @@ struct CollectionsView: View {
     
     var body: some View {
         NavigationStack {
-            List {
+            VStack {
+                // Debug indicator
+                Text("📁 CollectionsView Active - \(collectionGroups.count) collections")
+                    .font(.caption)
+                    .padding(4)
+                    .background(Color.orange.opacity(0.3))
+                
+                List {
                 // Import section
                 Section {
                     Button {
@@ -82,6 +89,7 @@ struct CollectionsView: View {
                     }
                 } header: {
                     Text("Collections")
+                }
                 }
             }
             .navigationTitle("Collections")
@@ -241,7 +249,7 @@ struct PhotoAlbumImportView: View {
         // Fetch assets from album
         let fetchOptions = PHFetchOptions()
         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        let assets = PHAssetCollection.fetchAssets(in: album, options: fetchOptions)
+        let assets = PHAsset.fetchAssets(in: album, options: fetchOptions)
         
         await MainActor.run {
             totalCount = assets.count
@@ -256,7 +264,7 @@ struct PhotoAlbumImportView: View {
                 // Process with Vision and AI
                 do {
                     let visionSummary = try await VisionAnalyzer.shared.analyze(image: image)
-                    let itemRecord = try await AIClassifier().classify(from: visionSummary, userHint: nil)
+                    let itemRecord = try await AIClassifier.shared.classify(from: visionSummary, userHint: nil as String?)
                     
                     // Save to Core Data
                     await MainActor.run {

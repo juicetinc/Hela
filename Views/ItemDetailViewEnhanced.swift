@@ -109,8 +109,8 @@ struct ItemDetailViewEnhanced: View {
                         .padding(.vertical, 4)
                     
                     VStack(spacing: 0) {
-                        if let quantity = item.quantity, quantity > 1 {
-                            metadataRow(key: "Quantity", value: "\(quantity)")
+                        if item.quantity > 1 {
+                            metadataRow(key: "Quantity", value: "\(item.quantity)")
                             Divider()
                         }
                         

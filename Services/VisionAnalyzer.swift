@@ -40,31 +40,59 @@ class VisionAnalyzer {
     /// - Returns: Array of detected objects with labels and confidence scores
     private func detectObjects(in image: CGImage) async -> [DetectedObject] {
         return await withCheckedContinuation { continuation in
-            let request = VNRecognizeObjectsRequest { request, error in
+            var isResumed = false
+            
+            let request = VNClassifyImageRequest { request, error in
+                guard !isResumed else { return }
+                
                 guard error == nil else {
                     print("Object detection error: \(error!.localizedDescription)")
+                    isResumed = true
                     continuation.resume(returning: [])
                     return
                 }
                 
-                guard let results = request.results as? [VNRecognizedObjectObservation] else {
+                guard let results = request.results as? [VNClassificationObservation] else {
+                    isResumed = true
                     continuation.resume(returning: [])
                     return
                 }
                 
-                let objects = results.compactMap { observation -> DetectedObject? in
-                    guard let topLabel = observation.labels.first else { return nil }
-                    return DetectedObject(
-                        label: topLabel.identifier,
-                        confidence: topLabel.confidence
-                    )
+                // Debug: Print all detected objects
+                print("🔍 Vision detected \(results.count) classifications:")
+                for (index, observation) in results.prefix(10).enumerated() {
+                    print("  \(index + 1). \(observation.identifier) (\(String(format: "%.1f", observation.confidence * 100))%)")
                 }
                 
-                continuation.resume(returning: objects)
+                // Filter objects with at least 10% confidence and take top 10
+                var objects = results
+                    .filter { $0.confidence >= 0.10 }
+                    .prefix(10)
+                    .map { observation in
+                        DetectedObject(
+                            label: observation.identifier,
+                            confidence: observation.confidence
+                        )
+                    }
+                
+                // SIMULATOR FALLBACK: If Vision returned no objects (simulator limitation),
+                // use mock data for testing purposes
+                #if targetEnvironment(simulator)
+                if objects.isEmpty {
+                    print("⚠️ Vision failed in simulator. Using mock object detection for testing.")
+                    objects = [
+                        DetectedObject(label: "flower", confidence: 0.95),
+                        DetectedObject(label: "plant", confidence: 0.87),
+                        DetectedObject(label: "blossom", confidence: 0.76),
+                        DetectedObject(label: "garden", confidence: 0.65),
+                        DetectedObject(label: "nature", confidence: 0.58)
+                    ]
+                }
+                #endif
+                
+                isResumed = true
+                continuation.resume(returning: Array(objects))
             }
-            
-            // Configure request for better results
-            request.imageCropAndScaleOption = .scaleFit
             
             let handler = VNImageRequestHandler(cgImage: image, options: [:])
             
@@ -73,7 +101,10 @@ class VisionAnalyzer {
                     try handler.perform([request])
                 } catch {
                     print("Failed to perform object detection: \(error)")
-                    continuation.resume(returning: [])
+                    if !isResumed {
+                        isResumed = true
+                        continuation.resume(returning: [])
+                    }
                 }
             }
         }
@@ -84,14 +115,20 @@ class VisionAnalyzer {
     /// - Returns: Recognized text string
     private func recognizeText(in image: CGImage) async -> String {
         return await withCheckedContinuation { continuation in
+            var isResumed = false
+            
             let request = VNRecognizeTextRequest { request, error in
+                guard !isResumed else { return }
+                
                 guard error == nil else {
                     print("Text recognition error: \(error!.localizedDescription)")
+                    isResumed = true
                     continuation.resume(returning: "")
                     return
                 }
                 
                 guard let results = request.results as? [VNRecognizedTextObservation] else {
+                    isResumed = true
                     continuation.resume(returning: "")
                     return
                 }
@@ -101,6 +138,7 @@ class VisionAnalyzer {
                 }
                 
                 let fullText = recognizedStrings.joined(separator: " ")
+                isResumed = true
                 continuation.resume(returning: fullText)
             }
             
@@ -115,7 +153,10 @@ class VisionAnalyzer {
                     try handler.perform([request])
                 } catch {
                     print("Failed to perform text recognition: \(error)")
-                    continuation.resume(returning: "")
+                    if !isResumed {
+                        isResumed = true
+                        continuation.resume(returning: "")
+                    }
                 }
             }
         }

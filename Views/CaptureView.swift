@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import CoreData
 
 struct CaptureView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -8,8 +9,15 @@ struct CaptureView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 30) {
+            VStack {
+                // Debug indicator
+                Text("📷 CaptureView Active")
+                    .font(.caption)
+                    .padding(4)
+                    .background(Color.blue.opacity(0.3))
+                
+                ScrollView {
+                    VStack(spacing: 30) {
                     // Image display area
                     if let cgImage = viewModel.selectedImage {
                         Image(decorative: cgImage, scale: 1.0)
@@ -20,21 +28,28 @@ struct CaptureView: View {
                             .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
                             .transition(.scale.combined(with: .opacity))
                     } else {
-                        // Placeholder when no image selected
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(.systemGray6))
-                            .frame(width: 350, height: 350)
-                            .overlay(
-                                VStack(spacing: 16) {
-                                    Image(systemName: "photo.badge.plus")
-                                        .font(.system(size: 70))
-                                        .foregroundStyle(.secondary)
-                                    Text("Select a photo to analyze")
-                                        .font(.title3)
-                                        .foregroundStyle(.secondary)
-                                }
-                            )
-                            .transition(.scale.combined(with: .opacity))
+                        // Placeholder when no image selected - tappable to open photo picker
+                        PhotosPicker(
+                            selection: $selectedItem,
+                            matching: .images,
+                            photoLibrary: .shared()
+                        ) {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(.systemGray6))
+                                .frame(width: 350, height: 350)
+                                .overlay(
+                                    VStack(spacing: 16) {
+                                        Image(systemName: "photo.badge.plus")
+                                            .font(.system(size: 70))
+                                            .foregroundStyle(.secondary)
+                                        Text("Select a photo to analyze")
+                                            .font(.title3)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .transition(.scale.combined(with: .opacity))
                     }
                     
                     // Analyzing indicator
@@ -167,8 +182,9 @@ struct CaptureView: View {
                     
                     Spacer()
                         .frame(height: 20)
+                    }
+                    .padding()
                 }
-                .padding()
             }
             .safeAreaInset(edge: .bottom) {
                 // Primary action button - fixed at bottom
@@ -284,7 +300,7 @@ struct ConfirmationSheet: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         Task {
-                            await viewModel.saveItem(context: context)
+                            await viewModel.saveItem(viewContext: context)
                             dismiss()
                         }
                     }

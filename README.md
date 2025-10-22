@@ -10,6 +10,20 @@ A SwiftUI iOS app that uses on-device Vision and Apple Intelligence to automatic
 - Xcode 16.0+
 - Swift 5.9+
 
+## 🍎 Apple Intelligence Integration
+
+Hela uses **Apple's on-device Foundation Models** (announced WWDC 2025) for intelligent photo classification:
+- ✅ **On-device** - works offline, ultra-fast
+- ✅ **Private** - data never leaves your device  
+- ✅ **Free** - no API costs
+- ✅ **Smart** - accurate classification powered by Apple's LLM
+
+**Fallback support:** ChatGPT API (optional) → Mock classification (always works)
+
+📖 See [APPLE_INTELLIGENCE.md](APPLE_INTELLIGENCE.md) for details.
+
+---
+
 ## Features
 
 - **Library Tab**: Browse all captured items

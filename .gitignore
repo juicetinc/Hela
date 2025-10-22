@@ -95,3 +95,6 @@ xcuserdata/
 *.swo
 *~
 
+# API Keys and Secrets
+Config.xcconfig
+

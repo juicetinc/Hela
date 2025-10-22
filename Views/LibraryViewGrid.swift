@@ -64,9 +64,16 @@ struct LibraryViewGrid: View {
     
     var body: some View {
         NavigationStack {
-            Group {
-                if filteredAndSortedItems.isEmpty {
-                    emptyState
+            VStack {
+                // Debug indicator
+                Text("📚 LibraryViewGrid - Items: \(allItems.count)")
+                    .font(.caption)
+                    .padding(4)
+                    .background(Color.green.opacity(0.3))
+                
+                Group {
+                    if filteredAndSortedItems.isEmpty {
+                        emptyState
                 } else {
                     ScrollView {
                         LazyVGrid(
@@ -90,6 +97,7 @@ struct LibraryViewGrid: View {
                         .padding(.horizontal, 12)
                         .padding(.top, 8)
                     }
+                }
                 }
             }
             .navigationTitle("Hela")

@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreData
+import UniformTypeIdentifiers
 
 struct NotesView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -274,7 +275,7 @@ struct AddNoteView: View {
     @Environment(\.managedObjectContext) private var viewContext
     
     @State private var title = ""
-    @State private var body = ""
+    @State private var noteBody = ""
     
     var body: some View {
         NavigationStack {
@@ -284,7 +285,7 @@ struct AddNoteView: View {
                 }
                 
                 Section("Content") {
-                    TextEditor(text: $body)
+                    TextEditor(text: $noteBody)
                         .frame(minHeight: 200)
                 }
             }
@@ -301,7 +302,7 @@ struct AddNoteView: View {
                     Button("Save") {
                         saveNote()
                     }
-                    .disabled(title.isEmpty && body.isEmpty)
+                    .disabled(title.isEmpty && noteBody.isEmpty)
                 }
             }
         }
@@ -312,7 +313,7 @@ struct AddNoteView: View {
         
         InventoryStore.shared.saveNote(
             title: noteTitle,
-            body: body,
+            body: noteBody,
             category: "note",
             tags: ["note"],
             attributes: [:],

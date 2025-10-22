@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreData
 
 struct MainTabViewEnhanced: View {
     @State private var selectedTab = 0

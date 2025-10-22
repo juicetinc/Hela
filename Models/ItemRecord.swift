@@ -9,7 +9,7 @@ struct ItemRecord: Codable {
     
     /// Valid categories for Hela items
     static let validCategories = [
-        "general", "bag", "recipe", "receipt", "fashion",
-        "decor", "document", "note"
+        "general", "grocery", "nails", "bags", "recipe", "receipt", 
+        "fashion", "electronics"
     ]
 }

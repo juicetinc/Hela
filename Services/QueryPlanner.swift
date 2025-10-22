@@ -130,7 +130,7 @@ class QueryPlanner {
         var remainingQuery = query
         
         // Remove filter keywords from the query
-        let allKeywords = [
+        var allKeywords = [
             // Categories
             "bag", "bags", "purse", "recipe", "recipes", "receipt", "receipts",
             "fashion", "clothing", "clothes", "decor", "decoration",

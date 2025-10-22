@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreData
 
 @main
 struct HelaApp: App {
@@ -24,4 +25,3 @@ struct HelaApp: App {
         }
     }
 }
-

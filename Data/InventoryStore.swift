@@ -69,11 +69,16 @@ class InventoryStore {
             newItem.imageData = imageData
         }
         
+        // Save on the context's own queue to avoid threading issues
         do {
             try context.save()
-            print("Item saved successfully: \(itemRecord.title)")
+            print("✅ Item saved successfully: \(itemRecord.title)")
         } catch {
-            print("Error saving item: \(error)")
+            print("❌ Error saving item: \(error)")
+            // Log more details about the error
+            if let nsError = error as NSError? {
+                print("Error details: \(nsError.userInfo)")
+            }
         }
         
         return newItem

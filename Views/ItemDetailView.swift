@@ -191,12 +191,12 @@ struct ItemDetailView: View {
                             }
                             .font(.subheadline)
                         } else {
-                            if let quantity = item.quantity, quantity > 1 {
+                            if item.quantity > 1 {
                                 HStack {
                                     Text("Quantity")
                                         .foregroundStyle(.secondary)
                                     Spacer()
-                                    Text("\(quantity)")
+                                    Text("\(item.quantity)")
                                 }
                                 .font(.subheadline)
                             }

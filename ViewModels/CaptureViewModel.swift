@@ -22,8 +22,8 @@ class CaptureViewModel {
     var editableCollection: String = ""
     var editableQuantity: Int = 1
     
-    private let visionAnalyzer = VisionAnalyzer()
-    private let aiClassifier = AIClassifier()
+    private let visionAnalyzer = VisionAnalyzer.shared
+    private let aiClassifier = AIClassifier.shared
     private let photoLibrary = PhotoLibraryService.shared
     
     /// Processes the selected photo picker item
@@ -37,7 +37,7 @@ class CaptureViewModel {
             return
         }
         
-        // Update UI on main thread
+        // Update UI state
         await MainActor.run {
             self.selectedImage = cgImage
             self.isAnalyzing = true
@@ -53,25 +53,26 @@ class CaptureViewModel {
     
     /// Analyzes the selected image using Vision and AI services
     private func analyzeImage(_ cgImage: CGImage, uiImage: UIImage) async {
-        // Use Vision service to analyze image with CGImage
-        let visionSummary = await visionAnalyzer.analyze(image: cgImage)
-        
-        // Generate debug JSON for vision results
-        let visionJSON = formatAsJSON(visionSummary)
-        
-        await MainActor.run {
-            self.visionSummary = visionSummary
-            self.debugJSON = visionJSON
-        }
-        
-        // Use AI classifier to classify the item
         do {
-            let itemRecord = try await aiClassifier.classify(from: visionSummary, userHint: nil)
+            // Use Vision service to analyze image with CGImage
+            let visionSummary = try await visionAnalyzer.analyze(image: UIImage(cgImage: cgImage))
+            
+            // Generate debug JSON for vision results
+            let visionJSON = formatAsJSON(visionSummary)
+            
+            // Update state
+            await MainActor.run {
+                self.visionSummary = visionSummary
+                self.debugJSON = visionJSON
+            }
+            
+            // Use AI classifier to classify the item
+            let itemRecord = try await aiClassifier.classify(from: visionSummary, userHint: nil as String?)
             
             // Generate combined debug JSON
             let combinedJSON = formatCombinedJSON(vision: visionSummary, item: itemRecord)
             
-            // Update results on main thread
+            // Update results
             await MainActor.run {
                 self.itemRecord = itemRecord
                 self.debugJSON = combinedJSON
@@ -101,60 +102,79 @@ class CaptureViewModel {
     }
     
     /// Saves the analyzed item to Core Data and Photos library with edited fields
-    func saveItem(context: NSManagedObjectContext) async {
+    @MainActor
+    func saveItem(viewContext: NSManagedObjectContext) async {
         guard let cgImage = selectedImage,
               let visionSummary = visionSummary else {
             return
         }
         
-        await MainActor.run {
-            self.isSaving = true
-            self.showConfirmation = false
-        }
+        // Update UI state
+        isSaving = true
+        showConfirmation = false
         
         let uiImage = UIImage(cgImage: cgImage)
         
-        // Create updated ItemRecord with editable fields
-        let tags = editableTags.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        // Capture values before async work
+        let title = editableTitle
+        let summary = editableSummary
+        let category = editableCategory
+        let tagsString = editableTags
+        let collection = editableCollection
+        let quantity = editableQuantity
+        let attributes = itemRecord?.attributes ?? [:]
+        
+        // Create updated ItemRecord
+        let tags = tagsString.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         let updatedRecord = ItemRecord(
-            title: editableTitle,
-            summary: editableSummary,
-            category: editableCategory,
+            title: title,
+            summary: summary,
+            category: category,
             tags: tags,
-            attributes: itemRecord?.attributes ?? [:]
+            attributes: attributes
         )
         
-        // Save to Photos library
-        var imageLocalId: String?
+        // Save to Photos library (async, non-blocking)
+        // TEMPORARILY DISABLED - Enable when Info.plist is properly configured
+        var imageLocalId: String? = nil
+        /*
         do {
             imageLocalId = try await photoLibrary.saveImageToLibrary(uiImage)
-            print("Image saved to Photos with ID: \(imageLocalId ?? "none")")
+            print("✅ Image saved to Photos with ID: \(imageLocalId ?? "none")")
         } catch {
-            print("Failed to save to Photos library: \(error)")
+            print("⚠️ Failed to save to Photos library: \(error)")
             // Continue anyway - we can still save to Core Data
         }
+        */
+        print("📸 Skipping Photos library save (disabled for testing)")
         
-        // Save to Core Data
-        await MainActor.run {
-            InventoryStore.shared.saveItem(
-                image: uiImage,
-                itemRecord: updatedRecord,
-                visionSummary: visionSummary,
-                imageLocalId: imageLocalId,
-                collection: editableCollection.isEmpty ? nil : editableCollection,
-                quantity: Int16(editableQuantity),
-                context: context
-            )
-            
-            self.isSaving = false
-            self.showSavedIndicator = true
-            
-            // Hide the "Saved" indicator after 2 seconds
-            Task {
-                try? await Task.sleep(nanoseconds: 2_000_000_000)
-                await MainActor.run {
-                    self.showSavedIndicator = false
-                }
+        // Save to Core Data (all on main queue since viewContext is main-queue concurrent)
+        InventoryStore.shared.saveItem(
+            image: uiImage,
+            itemRecord: updatedRecord,
+            visionSummary: visionSummary,
+            imageLocalId: imageLocalId,
+            collection: collection.isEmpty ? nil : collection,
+            quantity: Int16(quantity),
+            context: viewContext
+        )
+        
+        // Update UI state
+        isSaving = false
+        showSavedIndicator = true
+        
+        // Reset state for next photo
+        selectedImage = nil
+        itemRecord = nil
+        self.visionSummary = nil
+        debugJSON = ""
+        classificationError = nil
+        
+        // Hide the "Saved" indicator after 2 seconds
+        Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            await MainActor.run {
+                self.showSavedIndicator = false
             }
         }
     }
